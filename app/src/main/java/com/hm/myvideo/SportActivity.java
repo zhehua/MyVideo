@@ -1,6 +1,5 @@
 package com.hm.myvideo;
 
-
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
@@ -15,14 +14,18 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hm.myvideo.beans.Match;
+import com.hm.myvideo.beans.Menu;
+import com.hm.myvideo.beans.PlayItem;
 import com.hm.myvideo.util.Constants;
 import com.hm.myvideo.util.SportUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.internal.StringUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -89,7 +92,7 @@ public class SportActivity extends Activity {
     private void search(String game) {
         SportUtil util = new SportUtil();
         String sports = util.sportStr(game);
-        if (sports == null)
+        if (StringUtil.isBlank(sports))
             return;
         Message message = new Message();
         Bundle bundle = new Bundle();
@@ -134,7 +137,7 @@ public class SportActivity extends Activity {
 
                         for (int x = 0; x < size; x++) {
                             JSONObject object = matches.optJSONObject(x);
-                            Match match=new Match();
+                            Match match = new Match();
                             match.setGame(object.optString("game"));
                             match.setId(object.optInt("id"));
                             match.setName(object.optString("name"));
@@ -144,6 +147,15 @@ public class SportActivity extends Activity {
                             match.setLink(object.optString("link"));
                             JSONArray lives = object.optJSONArray("lives");
                             if (lives.length() > 0) {
+                                List<PlayItem> items = new ArrayList<>();
+                                for (int j = 0; j < lives.length(); j++) {
+                                    JSONObject live = lives.optJSONObject(j);
+                                    PlayItem playItem = new PlayItem();
+                                    playItem.setUrl(live.optString("link"));
+                                    playItem.setName(live.optString("name"));
+                                    items.add(playItem);
+                                }
+                                match.setItems(items);
                                 String link = lives.optJSONObject(0).optString("link");
                                 match.setLink(link);
                             }
@@ -171,8 +183,10 @@ public class SportActivity extends Activity {
                 String link = msg.getData().getString("link");
                 if (link != null) {
                     Intent intent = new Intent();
-                    intent.setClass(SportActivity.this, com.hm.myvideo.PlaySportActivity.class);
-                    intent.putExtra("url", link);
+                   /* intent.setClass(SportActivity.this, com.hm.myvideo.PlaySportActivity.class);
+                    intent.putExtra("url", link);*/
+                    intent.setClass(SportActivity.this, PlayVideoActivity.class);
+                    intent.putExtra("url", 0);
                     startActivity(intent);
                 }
             }
@@ -238,26 +252,50 @@ public class SportActivity extends Activity {
                 Date matchDate = df.parse(playDateStr + " " + match.getPlayTime() + ":00");
                 Date now = new Date();
                 if (matchDate.before(now)) {
-                    String link = match.getLink();
-                    System.out.println(link);
-                    if (link != null) {
+
+                    VideoActivity.menus.clear();
+                    List<PlayItem> itemList = match.getItems();
+                    //System.out.println(link);
+                    Menu menu = new Menu();
+                    if (itemList != null && itemList.size() > 0) {
+
+                        menu.setItems(itemList);
+                        VideoActivity.menus.add(menu);
                         Intent intent = new Intent();
-                        intent.setClass(SportActivity.this, com.hm.myvideo.PlaySportActivity.class);
-                        intent.putExtra("url", match.getLink());
+                       /* intent.setClass(SportActivity.this, com.hm.myvideo.PlaySportActivity.class);
+                        intent.putExtra("url", match.getLink());*/
+                        intent.setClass(SportActivity.this, PlayVideoActivity.class);
+                        intent.putExtra("url", 0);
                         startActivity(intent);
                     } else {
                         SportUtil sportUtil = new SportUtil();
                         new Thread(() -> {
-                            String link2 = sportUtil.link(match.getId());
+                            JSONArray lives = sportUtil.link(match.getId());
+                            if (lives != null && lives.length() > 0) {
+                                List<PlayItem> items = new ArrayList<>();
+                                for (int j = 0; j < lives.length(); j++) {
+                                    JSONObject live = lives.optJSONObject(j);
+                                    PlayItem playItem = new PlayItem();
+                                    playItem.setUrl(live.optString("link"));
+                                    playItem.setName(live.optString("name"));
+                                    items.add(playItem);
+                                }
+                                menu.setItems(items);
+                                VideoActivity.menus.add(menu);
+                            }
                             Message message = new Message();
                             Bundle bundle = new Bundle();
                             message.what = 2;
-                            bundle.putString("link", link2);
+                            bundle.putString("link", "");
                             message.setData(bundle);
                             uiHandler.sendMessage(message);
 
                         }).start();
                     }
+                } else {
+                    Toast toast = Toast.makeText(SportActivity.this, "比赛未开始", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.show();
                 }
             } catch (Exception e) {
                 e.printStackTrace();

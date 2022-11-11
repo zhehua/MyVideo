@@ -12,6 +12,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.hm.myvideo.beans.PlayItem;
 import com.hm.myvideo.util.Constants;
 import com.hm.myvideo.util.TvUtil;
@@ -47,44 +49,13 @@ public class PlayActivity extends Activity {
         playerView = findViewById(R.id.videoView);
         playerView.setUseController(false);
         playerView.setShowBuffering(StyledPlayerView.SHOW_BUFFERING_WHEN_PLAYING);
-        DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
-                //.setUserAgent(PubVar.usrAgent)
-                .setConnectTimeoutMs(10_000)
-                .setReadTimeoutMs(10_000)
-                .setAllowCrossProtocolRedirects(true);
 
 
-        player = new ExoPlayer.Builder(this).setMediaSourceFactory(new HlsMediaSource.Factory(dataSourceFactory)).build();
+        player = new ExoPlayer.Builder(this).build();
+
+        //   player = new ExoPlayer.Builder(this).setMediaSourceFactory(dataSourceFactory).build();
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
-           /* @Override
-            public void onIsPlayingChanged(boolean isPlaying) {
-                System.out.println("调试 onIsPlayingChanged ---" + isPlaying);
-                if (isPlaying)
-                    progressBar.setVisibility(View.GONE);
-                else
-                    progressBar.setVisibility(View.VISIBLE);
-            }*/
-
-            /*@Override
-            public void onIsLoadingChanged(boolean isLoading) {
-                System.out.println("调试 isLoading ---" + isLoading);
-            }
-
-            @Override
-            public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
-                System.out.println("调试 onMediaItemTransition ---" + reason);
-            }
-
-            @Override
-            public void onPlaybackStateChanged(int playbackState) {
-                System.out.println("调试 onPlaybackStateChanged ---" + playbackState);
-            }
-
-            @Override
-            public void onPlayerErrorChanged(@Nullable PlaybackException error) {
-                System.out.println("调试 onPlayerErrorChanged ---" + error);
-            }*/
 
             @Override
             public void onPlayerError(PlaybackException error) {
@@ -93,18 +64,27 @@ public class PlayActivity extends Activity {
                     player.prepare();
                     player.play();
                 } else {
-                    Toast("播放链接已失效");
+                    Toast("播放失败：" + error.getLocalizedMessage());
                 }
             }
-
-           /* @Override
-            public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
-                System.out.println("调试 onPlayWhenReadyChanged "+playWhenReady +" -->> "+reason);
-            }*/
         });
 
         play(index);
 
+    }
+
+    private void setUrl(String url) {
+        DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
+               // .setUserAgent(Constants.userAgent)
+                .setConnectTimeoutMs(10_000)
+                .setReadTimeoutMs(10_000)
+                .setAllowCrossProtocolRedirects(true);
+        MediaSource mediaSource = null;
+        if (Constants.useApp && !url.contains(".m3u8"))
+            mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url));
+        else
+            mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url));
+        player.setMediaSource(mediaSource);
     }
 
     private void play(int index) {
@@ -123,7 +103,8 @@ public class PlayActivity extends Activity {
             playItem.setUrl(null);
         }
         if (playItem.getUrl() != null) {
-            player.setMediaItem(MediaItem.fromUri(playItem.getUrl()));
+           // player.setMediaItem(MediaItem.fromUri(playItem.getUrl()));
+            setUrl(playItem.getUrl());
             player.prepare();
             player.play();
         } else {
@@ -198,8 +179,9 @@ public class PlayActivity extends Activity {
 
     private Handler uiHandler = new Handler() {
         public void handleMessage(Message msg) {
-            MediaItem mediaItem = MediaItem.fromUri(msg.getData().getString("m3u8Url"));
-            player.setMediaItem(mediaItem);
+            //MediaItem mediaItem = MediaItem.fromUri(msg.getData().getString("m3u8Url"));
+            //player.setMediaItem(mediaItem);
+            setUrl(msg.getData().getString("m3u8Url"));
             player.prepare();
             player.play();
         }

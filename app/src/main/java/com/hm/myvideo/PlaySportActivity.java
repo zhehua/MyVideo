@@ -1,3 +1,4 @@
+/*
 package com.hm.myvideo;
 
 import android.app.Activity;
@@ -99,4 +100,4 @@ public class PlaySportActivity extends Activity {
     }
 
 
-}
+}*/

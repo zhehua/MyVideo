@@ -30,10 +30,10 @@
             android:name=".SportActivity"
             android:screenOrientation="sensorLandscape"
             android:exported="false" />
-        <activity
+        <!--<activity
             android:name=".PlaySportActivity"
             android:screenOrientation="sensorLandscape"
-            android:exported="false" />
+            android:exported="false" />-->
         <activity
             android:name=".MainActivity"
             android:screenOrientation="sensorLandscape"

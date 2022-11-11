@@ -60,7 +60,6 @@ public class VideoActivity extends Activity {
         initView();
     }
 
-    int currId;
     public static List<Menu> menus = new ArrayList<>();
 
     void initData(Integer key, String keyWord, Integer pageNo) {

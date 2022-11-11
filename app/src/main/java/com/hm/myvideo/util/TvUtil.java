@@ -5,15 +5,12 @@ import com.hm.myvideo.beans.Menu;
 import com.hm.myvideo.beans.PlayItem;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TvUtil {
@@ -39,17 +36,32 @@ public class TvUtil {
                 List<PlayItem> items = new ArrayList<>();
                 for (Element element : aClass) {
                     String text = element.text();
-                    String attr = element.attr("onclick");
-                    if (attr.contains("act=play")) {
-                        String m3u8Url = attr.replace("clicked('","").replace("');","");// getM3u8Url(domain + attr);
-                        if (m3u8Url != null) {
-                            PlayItem playItem = new PlayItem();
-                            playItem.setName(text);
-                            playItem.setKey(m3u8Url);
-                            items.add(playItem);
-                        }
+                    if(Constants.useApp){
+                        String attr = element.attr("onclick");
+                        if (attr.contains("act=play")) {
+                            String m3u8Url = attr.replace("clicked('", "").replace("');", "");// getM3u8Url(domain + attr);
+                            if (m3u8Url != null) {
+                                PlayItem playItem = new PlayItem();
+                                playItem.setName(text);
+                                playItem.setKey(m3u8Url);
+                                items.add(playItem);
+                            }
 
+                        }
+                    }else {
+                        String attr = element.attr("href");
+                        if (attr.contains("act=play")) {
+                            String m3u8Url = attr;// getM3u8Url(domain + attr);
+                            if (m3u8Url != null) {
+                                PlayItem playItem = new PlayItem();
+                                playItem.setName(text);
+                                playItem.setKey(m3u8Url);
+                                items.add(playItem);
+                            }
+
+                        }
                     }
+
                 }
                 menu.setItems(items);
                 MainActivity.menus.add(menu);
@@ -105,7 +117,7 @@ public class TvUtil {
                         String[] ss = data.split(";");
                         for (String s : ss) {
                             String[] kv = s.split("=");
-                            if(kv.length<2)
+                            if (kv.length < 2)
                                 continue;
                             if (kv[1].contains("\"")) {
                                 map.put(kv[0], kv[1].replaceAll("\"", ""));
@@ -121,11 +133,20 @@ public class TvUtil {
                 }
 
             }
-            TVJsUtil tvJsUtil=new TVJsUtil();
-            String m3u8Url=tvJsUtil.getPlayUrl(str,key,attr1);
-            return m3u8Url;
-           /* Connection.Response response = Jsoup.connect(m3u8Url).timeout(5_000).ignoreContentType(true).followRedirects(true).execute();
-            return response.url().toString();*/
+            TVJsUtil tvJsUtil = new TVJsUtil();
+            String m3u8Url = tvJsUtil.getPlayUrl(str, key, attr1);
+            /*if(!Constants.useApp)
+                return m3u8Url;*/
+            /*SSLContext sslcontext = SSLContext.getInstance("TLSv1");
+            sslcontext.init(null, null, null);
+            SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory(sslcontext.getSocketFactory());*/
+            Connection connection = Jsoup.connect(m3u8Url).userAgent(Constants.userAgent).ignoreContentType(true);
+            if(!Constants.useApp){
+                connection.cookies(getCookies()).headers(getHeaders()).sslSocketFactory(new SSLSocketFactoryCompat());
+            }
+            Connection.Response response = connection.execute();
+            System.out.println(response.url());
+            return response.url().toString();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,7 +243,7 @@ public class TvUtil {
         headers.put("Accept-Encoding", "gzip");
         try {
             String body = Jsoup.connect(url).headers(headers).ignoreContentType(true).get().text();
-            JSONObject jsonObject =new  JSONObject(body);
+            JSONObject jsonObject = new JSONObject(body);
             JSONArray tvChannels = jsonObject.optJSONArray("tvChannels");
             List<PlayItem> items = setItems(tvChannels);
             return items;
@@ -287,7 +308,7 @@ public class TvUtil {
     public static String getGz(String key) {
         try {
             String json = Jsoup.connect("https://www.gztv.com/gztv/api/tv/" + key).timeout(5_000).ignoreContentType(true).header("User-Agent", "Mozilla/5.0 (iPad; CPU OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1").get().text();
-            JSONObject jsonObject =new JSONObject(json);
+            JSONObject jsonObject = new JSONObject(json);
             return jsonObject.optString("data");
         } catch (Exception e) {
             e.printStackTrace();
@@ -340,14 +361,43 @@ public class TvUtil {
         return menu;
     }*/
 
+
     private static Document document(String url) throws Exception {
+        if(Constants.useApp)
+            return Jsoup.connect(url).userAgent(Constants.userAgent).cookies(getCookies()).timeout(5_000).headers(getHeaders()).get();
+        else
+            return Jsoup.connect(url).userAgent(Constants.userAgent).timeout(5_000).get();
+    }
+
+    private static Map<String, String> getCookies() {
+        Map<String, String> cookies = new HashMap();
+        cookies.put("__51uvsct__JdUsShpLT7cBN1Nl", "1");
+        cookies.put("__51vcke__JdUsShpLT7cBN1Nl", "d94ab90b-36b7-5631-b7e4-6db51c77a47c");
+        cookies.put("__51vuft__JdUsShpLT7cBN1Nl", "1665199739086");
+        cookies.put("_gid", "GA1.2.867872989.1665199740");
+        cookies.put("iptvad", "1");
+        cookies.put("appid", "__W2A__app.iptv800.com");
+        cookies.put("version", "1.4.1");
+        cookies.put("screenw", "900");
+        cookies.put("screenh", "1600");
+        cookies.put("__vtins__JdUsShpLT7cBN1Nl", "%7B%22sid%22%3A%20%228fcb1033-6d5e-54f8-9641-2246f7f98e03%22%2C%20%22vd%22%3A%209%2C%20%22stt%22%3A%20765030%2C%20%22dr%22%3A%2087421%2C%20%22expires%22%3A%201665202304107%2C%20%22ct%22%3A%201665200504107%7D");
+        cookies.put("_ga_KSS36MH2EN", "GS1.1.1665199739.1.1.1665200504.54.0.0");
+        cookies.put("_ga", "GA1.2.61763740.1665199740");
+        cookies.put("_gat_gtag_UA_120439249_1", "1");
+        return cookies;
+    }
+    private static Map<String, String> getHeaders() {
         Map<String, String> headers = new HashMap();
         headers.put("upgrade-insecure-requests", "1");
-        headers.put("user-agent", "Mozilla/5.0 (Linux; Android 5.1.1; SM-N976N Build/QP1A.190711.020; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.136 Mobile Safari/537.36 MicroMessengeriptv/1.4.0 VideoPlayer Html5Plus/1.0");
-        headers.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=");
+        headers.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
         headers.put("accept-encoding", "gzip, deflate");
         headers.put("accept-language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7");
         headers.put("x-requested-with", "w2a.app.iptv800.com");
-        return Jsoup.connect(url).timeout(5_000).headers(headers).get();
+
+        headers.put("sec-fetch-site", "none");
+        headers.put("sec-fetch-mode", "navigate");
+        headers.put("sec-fetch-user", "?1");
+        headers.put("sec-fetch-dest", "document");
+        return headers;
     }
 }

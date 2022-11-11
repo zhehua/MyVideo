@@ -8,7 +8,7 @@ import com.hm.myvideo.beans.PlayItem;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.StringUtil;
+import org.jsoup.internal.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public class VideoUtil {
 
         surl += "?ac=detail&" + s + "&pg=" + pageNo;
         //System.out.println(s);
-        String text = Jsoup.connect(surl).timeout(10_000).validateTLSCertificates(false).ignoreContentType(true).get().text();
+        String text = Jsoup.connect(surl).timeout(10_000).sslSocketFactory(new SSLSocketFactoryCompat()).ignoreContentType(true).get().text();
         text = string2Json(text);
         // text = text.replaceAll("[\\t\\n\\r]", "");
         JSONObject object =new JSONObject(text);

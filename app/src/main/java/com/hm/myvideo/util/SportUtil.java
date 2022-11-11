@@ -12,7 +12,7 @@ public class SportUtil {
         if(game.equals("全部"))
             game="";
         try {
-            String text = Jsoup.connect("https://70zhibo.com/api/web/indexMatchList?game=" + game).validateTLSCertificates(false).ignoreContentType(true).get().text();
+            String text = Jsoup.connect("https://70zhibo.com/api/web/indexMatchList?game=" + game).sslSocketFactory(new SSLSocketFactoryCompat()).header("cookie", "RQ0=d65cc98ae0778a179713a722e28377c5").ignoreContentType(true).get().text();
             return text;
         } catch (Exception e) {
             e.printStackTrace();
@@ -21,7 +21,7 @@ public class SportUtil {
         return null;
     }
 
-    public String link(int id) {
+    public JSONArray link(int id) {
         try {
             Map map = new HashMap<>();
             map.put("accept"," application/json, text/plain, */*");
@@ -44,7 +44,7 @@ public class SportUtil {
             JSONObject object = new JSONObject(text);
             JSONArray lives = object.optJSONArray("lives");
             if (lives.length() > 0) {
-                return lives.optJSONObject(0).optString("link");
+                return lives;
             }
         } catch (Exception e) {
             e.printStackTrace();

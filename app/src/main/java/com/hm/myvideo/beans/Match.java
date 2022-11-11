@@ -1,6 +1,8 @@
 package com.hm.myvideo.beans;
 
 
+import java.util.List;
+
 public class Match {
     private String playTime;
     private String game;
@@ -12,6 +14,7 @@ public class Match {
     private String masterTeamName;
     private String masterTeamLink;
     private Integer id;
+    private List<PlayItem> items;
 
 
     public String getPlayTime() {
@@ -92,5 +95,13 @@ public class Match {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public List<PlayItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<PlayItem> items) {
+        this.items = items;
     }
 }
