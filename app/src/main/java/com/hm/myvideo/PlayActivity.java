@@ -16,6 +16,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.hm.myvideo.beans.PlayItem;
 import com.hm.myvideo.util.Constants;
+import com.hm.myvideo.util.TvJsUtil2;
 import com.hm.myvideo.util.TvUtil;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
@@ -75,12 +76,12 @@ public class PlayActivity extends Activity {
 
     private void setUrl(String url) {
         DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
-               // .setUserAgent(Constants.userAgent)
+                // .setUserAgent(Constants.userAgent)
                 .setConnectTimeoutMs(10_000)
                 .setReadTimeoutMs(10_000)
                 .setAllowCrossProtocolRedirects(true);
         MediaSource mediaSource = null;
-        if (Constants.useApp && !url.contains(".m3u8"))
+        if (Constants.useApp && (url.contains("tid=gt")||url.contains("tid=ty")))
             mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url));
         else
             mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url));
@@ -103,7 +104,7 @@ public class PlayActivity extends Activity {
             playItem.setUrl(null);
         }
         if (playItem.getUrl() != null) {
-           // player.setMediaItem(MediaItem.fromUri(playItem.getUrl()));
+            // player.setMediaItem(MediaItem.fromUri(playItem.getUrl()));
             setUrl(playItem.getUrl());
             player.prepare();
             player.play();
@@ -116,7 +117,10 @@ public class PlayActivity extends Activity {
                 } else if (key.startsWith("gd_")) {
                     m3u8Url = TvUtil.getGd(index);
                 } else {
-                    m3u8Url = TvUtil.getM3u8Url(Constants.tvDomain + key);
+                    if(key.contains("tid=gt"))
+                        m3u8Url= TvJsUtil2.getM3u8Url(Constants.tvDomain() + key);
+                    else
+                        m3u8Url = TvUtil.getM3u8Url(Constants.tvDomain() + key);
                     if (null != m3u8Url)
                         m3u8Url = m3u8Url.replace("2300000", "4000000");
                 }

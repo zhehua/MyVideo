@@ -30,7 +30,11 @@ import com.hm.myvideo.util.Constants;
 import com.hm.myvideo.util.VideoUtil;
 
 
+import java.time.LocalDate;
+import java.time.Year;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,10 +112,22 @@ public class VideoActivity extends Activity {
     };
 
     void initView() {
-        spinner = findViewById(R.id.spinner);
+        /*spinner = findViewById(R.id.spinner);
         List<String> names = new ArrayList<String>();
         names.add("U酷");
         names.add("飞速");
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, names);
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(dataAdapter);*/
+
+        spinner = findViewById(R.id.ySpinner);
+        List<String> names = new ArrayList<String>();
+        int y= LocalDate.now().getYear();
+        for (int i = 0; i < 5; i++) {
+            names.add(y-i+"");
+        }
+
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, names);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -308,9 +324,17 @@ public class VideoActivity extends Activity {
                 title.setText(menu.getCategory());
                 title.setWidth(picWidth);
                 title.setTextColor(Color.WHITE);
-                title.setTextSize(Constants.itemTextSize);
-                title.setHeight(60);
+                title.setTextSize(12);
+               // title.setHeight(60);
                 item.addView(title);
+                //备注
+                TextView remark = new TextView(this);
+                remark.setText(menu.getVodRemarks());
+                remark.setWidth(picWidth);
+                remark.setTextColor(Color.WHITE);
+                remark.setTextSize(8);
+               // remark.setHeight(20);
+                item.addView(remark);
                 layout.addView(item);
             }
             baseView.addView(layout);

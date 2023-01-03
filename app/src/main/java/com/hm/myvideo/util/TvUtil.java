@@ -1,5 +1,6 @@
 package com.hm.myvideo.util;
 
+
 import com.hm.myvideo.MainActivity;
 import com.hm.myvideo.beans.Menu;
 import com.hm.myvideo.beans.PlayItem;
@@ -11,7 +12,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TvUtil {
     //tvb新闻台
@@ -22,18 +28,25 @@ public class TvUtil {
             return MainActivity.menus;
 
         Map<String, String> list = new LinkedHashMap<>();
-        list.put("港台", Constants.tvDomain + "?tid=gt");
-        list.put("卫视", Constants.tvDomain + "?tid=ws");
-        list.put("体育", Constants.tvDomain + "?tid=ty");
-        list.put("央视", Constants.tvDomain + "?tid=ys");
+        list.put("港台", Constants.tvDomain() + "?tid=gt");
+        //list.put("极速港台", Constants.tvDomain() + "?tid=wintv123");
+        list.put("卫视", Constants.tvDomain() + "?tid=ws");
+        list.put("体育", Constants.tvDomain() + "?tid=ty");
+        list.put("央视", Constants.tvDomain() + "?tid=ys");
         try {
             for (String key : list.keySet()) {
+                List<PlayItem> items = new ArrayList<>();
+                if(key.equals("港台")){
+                    PlayItem item=new PlayItem();
+                    item.setUrl("https://hpull.kktv8.com/livekktv/128600025/playlist.m3u8");
+                    item.setName("电影台");
+                    items.add(item);
+                }
                 String value = list.get(key);
                 Menu menu = new Menu();
                 menu.setCategory(key);
                 Document ty = document(value);
                 Elements aClass = ty.select("a");
-                List<PlayItem> items = new ArrayList<>();
                 for (Element element : aClass) {
                     String text = element.text();
                     if(Constants.useApp){
@@ -43,6 +56,14 @@ public class TvUtil {
                             if (m3u8Url != null) {
                                 PlayItem playItem = new PlayItem();
                                 playItem.setName(text);
+                                if(text.equals("凤凰卫视中文"))
+                                    playItem.setUrl("https://playtv-live.ifeng.com/live/06OLEGEGM4G.m3u8");
+                                else if(text.equals("凤凰卫视资讯"))
+                                    playItem.setUrl("https://playtv-live.ifeng.com/live/06OLEEWQKN4.m3u8");
+                                else if(text.equals("凤凰香港高清"))
+                                    playItem.setUrl("http://ott.js.chinamobile.com/TVOD/3/224/3221228060/index.m3u8");
+                                else if(text.equals("香港卫视HKS"))
+                                    playItem.setUrl("http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8");
                                 playItem.setKey(m3u8Url);
                                 items.add(playItem);
                             }
@@ -135,18 +156,20 @@ public class TvUtil {
             }
             TVJsUtil tvJsUtil = new TVJsUtil();
             String m3u8Url = tvJsUtil.getPlayUrl(str, key, attr1);
+            return  m3u8Url;
+
             /*if(!Constants.useApp)
                 return m3u8Url;*/
             /*SSLContext sslcontext = SSLContext.getInstance("TLSv1");
             sslcontext.init(null, null, null);
             SSLSocketFactory NoSSLv3Factory = new NoSSLv3SocketFactory(sslcontext.getSocketFactory());*/
-            Connection connection = Jsoup.connect(m3u8Url).userAgent(Constants.userAgent).ignoreContentType(true);
+            /*Connection connection = Jsoup.connect(m3u8Url).userAgent(Constants.userAgent()).ignoreContentType(true);
             if(!Constants.useApp){
                 connection.cookies(getCookies()).headers(getHeaders()).sslSocketFactory(new SSLSocketFactoryCompat());
             }
             Connection.Response response = connection.execute();
             System.out.println(response.url());
-            return response.url().toString();
+            return response.url().toString();*/
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -363,13 +386,14 @@ public class TvUtil {
 
 
     private static Document document(String url) throws Exception {
-        if(Constants.useApp)
-            return Jsoup.connect(url).userAgent(Constants.userAgent).cookies(getCookies()).timeout(5_000).headers(getHeaders()).get();
+        Connection connection = Jsoup.connect(url).userAgent(Constants.userAgent()).timeout(5_000);
+        if (Constants.useApp)
+            return connection.headers(getHeaders()).get();
         else
-            return Jsoup.connect(url).userAgent(Constants.userAgent).timeout(5_000).get();
+            return connection.get();
     }
 
-    private static Map<String, String> getCookies() {
+    public static Map<String, String> getCookies() {
         Map<String, String> cookies = new HashMap();
         cookies.put("__51uvsct__JdUsShpLT7cBN1Nl", "1");
         cookies.put("__51vcke__JdUsShpLT7cBN1Nl", "d94ab90b-36b7-5631-b7e4-6db51c77a47c");
@@ -386,7 +410,7 @@ public class TvUtil {
         cookies.put("_gat_gtag_UA_120439249_1", "1");
         return cookies;
     }
-    private static Map<String, String> getHeaders() {
+    public static Map<String, String> getHeaders() {
         Map<String, String> headers = new HashMap();
         headers.put("upgrade-insecure-requests", "1");
         headers.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");

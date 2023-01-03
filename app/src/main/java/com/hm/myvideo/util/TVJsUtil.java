@@ -6,50 +6,50 @@ import java.util.Map;
 
 public class TVJsUtil {
     public  String getPlayUrl(String str,String key,String attr1) {
-        TVJsUtil gd = new TVJsUtil();
-        String bdecodeb = gd.bdecodeb(str, key);
-        String replace = bdecodeb.toString().replace("<script>", "").replace("</script>", "");
-        Map<String, String> tmap = new HashMap();
-        //  System.out.println(replace);
-        String[] split = replace.split(";");
-        for (String ss : split) {
-            String[] kv = ss.split("=");
-            String k = kv[0].trim();
-            k = k.replace("var", "");
-            String v = kv[1].trim();
-            if (v.contains("\"")) {
-                if (v.contains("split") || v.contains("reverse")) {
-                    StringBuilder sb = new StringBuilder();
-                    String[] split1 = v.split("\\+");
-                    for (String s : split1) {
-                        String val = s.replace(".split(\"\").reverse().join(\"\")", "");
-                        if (val.contains("\"")) {
-                            val = val.replace("\"", "");
-                            if (s.contains("reverse"))
-                                sb.append(new StringBuilder(val).reverse());
-                            else
-                                sb.append(new StringBuilder(val));
-                        } else {
-                            sb.append(new StringBuilder(tmap.get(val)).reverse());
+            TVJsUtil gd = new TVJsUtil();
+            String bdecodeb = gd.bdecodeb(str, key);
+            String replace = bdecodeb.toString().replace("<script>", "").replace("</script>", "");
+            Map<String, String> tmap = new HashMap();
+            //  System.out.println(replace);
+            String[] split = replace.split(";");
+            for (String ss : split) {
+                String[] kv = ss.split("=");
+                String k = kv[0].trim();
+                k = k.replace("var", "");
+                String v = kv[1].trim();
+                if (v.contains("\"")) {
+                    if (v.contains("split") || v.contains("reverse")) {
+                        StringBuilder sb = new StringBuilder();
+                        String[] split1 = v.split("\\+");
+                        for (String s : split1) {
+                            String val = s.replace(".split(\"\").reverse().join(\"\")", "");
+                            if (val.contains("\"")) {
+                                val = val.replace("\"", "");
+                                if (s.contains("reverse"))
+                                    sb.append(new StringBuilder(val).reverse());
+                                else
+                                    sb.append(new StringBuilder(val));
+                            } else {
+                                sb.append(new StringBuilder(tmap.get(val)).reverse());
+                            }
                         }
+                        tmap.put(k.trim(), sb.toString());
+                    } else {
+                        v = v.replace("\"", "");
+                        tmap.put(k.trim(), v.trim());
                     }
-                    tmap.put(k.trim(), sb.toString());
-                } else {
-                    v = v.replace("\"", "");
-                    tmap.put(k.trim(), v.trim());
-                }
 
-            } else {
-                if (tmap.containsKey(v)) {
-                    String o = tmap.get(v);
-                    tmap.put(k.trim(), o.trim());
+                } else {
+                    if (tmap.containsKey(v)) {
+                        String o = tmap.get(v);
+                        tmap.put(k.trim(), o.trim());
+                    }
                 }
             }
-        }
-        String startPlayer = gd.startPlayer(attr1, tmap);
-        System.out.println(startPlayer);
-        String playUrl = startPlayer.toString().replace("player", "play");
-        return playUrl;
+            String startPlayer = gd.startPlayer(attr1, tmap);
+            System.out.println(startPlayer);
+            String playUrl = startPlayer.toString().replace("player", "play");
+            return playUrl;
     }
 
     String m3u8Uri;

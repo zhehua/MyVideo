@@ -6,6 +6,15 @@ public class Menu {
     String category;
     List<PlayItem> items;
     String vodPic;
+    String vodRemarks;
+
+    public String getVodRemarks() {
+        return vodRemarks;
+    }
+
+    public void setVodRemarks(String vodRemarks) {
+        this.vodRemarks = vodRemarks;
+    }
 
     public String getVodPic() {
         return vodPic;
