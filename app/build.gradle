@@ -26,6 +26,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    lintOptions {
+        /*表示不需要检查错误，生成的隐患文件错误，不需要检查,生成文件不停止*/
+        checkReleaseBuilds false
+        /*关于错误信息，不需要打印错误，忽略错误信息*/
+        abortOnError false
+    }
 }
 
 dependencies {
