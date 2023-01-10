@@ -138,7 +138,37 @@ public class MainActivity extends Activity {
             }
         });
         menuList.addView(movBtn);
+        //布蕾电影
 
+        Button BLBtn = new Button(this);
+        BLBtn.setId(View.generateViewId());
+        BLBtn.setLayoutParams(btnParams);
+        BLBtn.setTextSize(Constants.menuTextSize);
+        BLBtn.setText("布蕾");
+        BLBtn.setTextColor(Color.WHITE);
+        BLBtn.setBackgroundColor(Color.BLACK);
+        BLBtn.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    BLBtn.setBackgroundColor(Color.rgb(34, 139, 34));
+                    isM = true;
+                } else {
+                    BLBtn.setBackgroundColor(Color.rgb(0, 0, 0));
+                    isM = false;
+                }
+
+            }
+        });
+        BLBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, BLVideoActivity.class);
+                startActivity(intent);
+            }
+        });
+        menuList.addView(BLBtn);
 
         if (menus.size() > 0)
             showUI(menus.get(0).getItems());

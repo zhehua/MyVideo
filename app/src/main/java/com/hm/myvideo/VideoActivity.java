@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -123,7 +124,8 @@ public class VideoActivity extends Activity {
 
         spinner = findViewById(R.id.ySpinner);
         List<String> names = new ArrayList<String>();
-        int y= LocalDate.now().getYear();
+        names.add("年份");
+        int y= Calendar.getInstance().get(Calendar.YEAR);
         for (int i = 0; i < 5; i++) {
             names.add(y-i+"");
         }

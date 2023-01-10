@@ -27,6 +27,14 @@
             android:screenOrientation="sensorLandscape"
             android:exported="false" />
         <activity
+            android:name=".BLVideoActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
+            android:name=".PlayBLVideoActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+        <activity
             android:name=".SportActivity"
             android:screenOrientation="sensorLandscape"
             android:exported="false" />
